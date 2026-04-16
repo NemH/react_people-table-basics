@@ -1,19 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Person } from '../../types';
 import { Loader } from '../Loader';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { getPeople } from '../../api';
-
-type PersonLinkProps = { people: Person; onSelect: (name: string) => void };
-const PersonLink: React.FC<PersonLinkProps> = ({ people, onSelect }) => (
-  <Link
-    to={`/people/${people.slug}`}
-    onClick={() => onSelect(people.name)}
-    className={people.sex === 'f' ? 'has-text-danger' : ''}
-  >
-    {people.name}
-  </Link>
-);
+import { PeopleTable } from './PeopleTable';
 
 export const PeoplePage = () => {
   const [selectedPersonName, setSelectedPersonName] = useState<string>('');
@@ -23,10 +13,6 @@ export const PeoplePage = () => {
   const [peoples, setPeoples] = useState<Person[]>([]);
 
   const { slug } = useParams();
-
-  function peopleByName(name: string) {
-    return peoples.find(person => person.name === name);
-  }
 
   useEffect(() => {
     async function fetchData() {
@@ -72,79 +58,7 @@ export const PeoplePage = () => {
           {loader && <Loader />}
 
           {hasPeople && (
-            <table
-              data-cy="peopleTable"
-              className="table is-striped is-hoverable is-narrow is-fullwidth"
-            >
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Sex</th>
-                  <th>Born</th>
-                  <th>Died</th>
-                  <th>Mother</th>
-                  <th>Father</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {peoples.map(people => {
-                  const mother = people.motherName
-                    ? peopleByName(people.motherName)
-                    : null;
-                  const father = people.fatherName
-                    ? peopleByName(people.fatherName)
-                    : null;
-
-                  return (
-                    <tr
-                      data-cy="person"
-                      key={people.slug}
-                      className={
-                        selectedPersonName === people.name
-                          ? 'has-background-warning'
-                          : ''
-                      }
-                    >
-                      <td>
-                        <Link
-                          to={`/people/${people.slug}`}
-                          onClick={() => setSelectedPersonName(people.name)}
-                          className={
-                            people.sex === 'f' ? 'has-text-danger' : ''
-                          }
-                        >
-                          {people.name}
-                        </Link>
-                      </td>
-                      <td>{people.sex}</td>
-                      <td>{people.born}</td>
-                      <td>{people.died}</td>
-                      <td>
-                        {mother ? (
-                          <PersonLink
-                            people={mother}
-                            onSelect={setSelectedPersonName}
-                          />
-                        ) : (
-                          people.motherName || '-'
-                        )}
-                      </td>
-                      <td>
-                        {father ? (
-                          <PersonLink
-                            people={father}
-                            onSelect={setSelectedPersonName}
-                          />
-                        ) : (
-                          people.fatherName || '-'
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <PeopleTable selected={selectedPersonName} people={peoples} />
           )}
 
           {!loader && !error && !hasPeople && (
